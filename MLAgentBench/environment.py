@@ -21,9 +21,21 @@ from .high_level_actions import HIGH_LEVEL_ACTIONS
 from .schema import Step, Trace, EnvException, TooLongPromptError, LLMError, EnhancedJSONEncoder 
 from .LLM import complete_text_claude
 from .prepare_task import prepare_task, get_task_info
+import multiprocessing
 
 class TimeoutException(Exception): pass
 
+def namespace_to_dict(namespace_obj):
+    """Converts an argparse.Namespace object to a dictionary, 
+       handling potential missing __dict__ attributes.
+    """
+    if hasattr(namespace_obj, '__dict__'):
+        return namespace_obj.__dict__
+    else:
+        # Manually build the dictionary
+        return {
+            key: value for key, value in namespace_obj._get_kwargs()
+        }
 
 def create_benchmark_folder_name(research_problem, log_file):
     """Create a benchmark folder name from a research problem in interactive mode"""
@@ -76,6 +88,7 @@ class Environment:
             "python": args.python,
             "work_dir": self.work_dir,
             "args": args,
+            # "args": namespace_to_dict(args),
             "read_only_files": self.read_only_files,
             "research_problem": self.research_problem,
         }
@@ -311,7 +324,67 @@ class Environment:
 
             if isinstance(action_input, dict):
                 try:
+
+                    # action_info = {
+                    #     'name': action_name,
+                    #     'input': action_input,
+                    #     'static_kwargs': self.static_kwargs_for_tools,
+                    #     'log_file': log_file,
+                    #     'trace': trace
+                    # }
+                    # print('\n action_info: ', action_info)
+                    # # action_info_dict = namespace_to_dict(action_info)
+                    # serialized_action_info = json.dumps(action_info)
+
+                    # run_command = ["python", "-c", f"""
+                    #     import json, sys, os
+                    #     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+                    #     sys.path.insert(0, project_root)
+                    #     from tools import get_tool_func
+                    #     action_info = json.loads('{serialized_action_info}')
+                    #     tool_func = get_tool_func(action_info['name'])
+                    #     observation = tool_func(**action_info['input'], **action_info['static_kwargs'])
+                    #     print(observation)
+                    #     """]
+
+                    # venv_path = "~/mla"
+                    # activate_command = ["source", os.path.join(venv_path, "bin", "activate")]
+                    # # Combine activation and execution commands
+                    # command = activate_command + run_command
+
+                    # print('\n command: ', command)
+
+                    # # Run the command and capture output
+                    # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=shell, executable='/bin/bash')
+                    # stdout, stderr = process.communicate()
+                    
+                    # if process.returncode != 0:
+                    #     raise RuntimeError(f"Command execution failed (within venv) with error: {stderr}")
+
+                    # # Return the observation
+                    # observation = stdout.strip()
+
+                    # print('\n observation: ', observation)
+
+                    ### OLD RUN DIRECTLY on default, not virtual env
                     observation = self.action_infos[action_name].function(**action_input, log_file=log_file, trace=trace, **self.static_kwargs_for_tools)
+
+
+                    # with multiprocessing.Pool(processes=2) as pool:
+                    #             # Prepare arguments for apply_async
+                    #             args = (action_input,)
+                    #             kwargs = {
+                    #                 "log_file": log_file,
+                    #                 "trace": trace,
+                    #                 **self.static_kwargs_for_tools
+                    #             }
+
+                    #             # Use apply_async to run the function asynchronously
+                    #             result = pool.apply_async(self.action_infos[action_name], args, kwargs)
+
+                    #             # Get the result (this will wait for the process to complete)
+                    #             observation = result.get()
+
                 except TooLongPromptError:
                     observation="EnvError: too long input for the tool"
                 except LLMError as e:

@@ -46,6 +46,14 @@ except Exception as e:
     print(e)
     print("Could not load VertexAI API.")
 
+try:
+    import google.generativeai as genai
+    gemini_api =  open("gemini_api_key.txt").read().strip()
+    genai.configure(api_key=gemini_api)
+except Exception as e:
+    print(e)
+    print("Could not load Gemini API.")
+
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import StoppingCriteria, StoppingCriteriaList
 import torch
@@ -117,7 +125,7 @@ def complete_text_hf(prompt, stop_sequences=[], model="huggingface/codellama/Cod
 def complete_text_gemini(prompt, stop_sequences=[], model="gemini-pro", max_tokens_to_sample = 2000, temperature=0.5, log_file=None, **kwargs):
     """ Call the gemini API to complete a prompt."""
     # Load the model
-    model = GenerativeModel("gemini-pro")
+    gemini_model = genai.GenerativeModel(model)
     # Query the model
     parameters = {
             "temperature": temperature,
@@ -125,13 +133,14 @@ def complete_text_gemini(prompt, stop_sequences=[], model="gemini-pro", max_toke
             "stop_sequences": stop_sequences,
             **kwargs
         }
-    safety_settings = {
-            harm_category: SafetySetting.HarmBlockThreshold(SafetySetting.HarmBlockThreshold.BLOCK_NONE)
-            for harm_category in iter(HarmCategory)
-        }
-    safety_settings = {
-        }
-    response = model.generate_content( [prompt], generation_config=parameters, safety_settings=safety_settings)
+    # safety_settings = {
+    #         harm_category: SafetySetting.HarmBlockThreshold(SafetySetting.HarmBlockThreshold.BLOCK_NONE)
+    #         for harm_category in iter(HarmCategory)
+    #     }
+    # safety_settings = {
+    #     }
+    # response = model.generate_content( [prompt], generation_config=parameters, safety_settings=safety_settings)
+    response = gemini_model.generate_content( [prompt], generation_config=parameters)
     completion = response.text
     if log_file is not None:
         log_to_file(log_file, prompt, completion, model, max_tokens_to_sample)

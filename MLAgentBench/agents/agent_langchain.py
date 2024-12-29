@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple, Union, Any
 
 from langchain.agents import AgentExecutor
 from langchain.agents import initialize_agent
-from langchain.agents.tools import Tool
+from langchain.tools import Tool
 from langchain_anthropic import ChatAnthropic
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import (

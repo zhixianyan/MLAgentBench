@@ -40,8 +40,8 @@ test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, trans
 
 # Define the dataloaders 
 batch_size = 128
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=4)
-test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True,num_workers=4)
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=0)
+test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True,num_workers=0)
 
 # Define the optimizer and loss function
 model = Net().to(device)
